@@ -1,8 +1,7 @@
 #include <gz/plugin/Register.hh>
 #include <typeinfo>
 
-
-#include "ariac_camera_plugin/ariac_camera_plugin.hpp"
+#include <ariac_gz_plugins/ariac_camera_plugin.hpp>
 
 namespace ariac_sensors{
 
