@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 project(ariac_camera_plugin)
 
-
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(gz-cmake3 REQUIRED)
@@ -36,14 +35,12 @@ ament_target_dependencies(AriacCameraPlugin
 )
 
 ament_export_libraries(AriacCameraPlugin)
-ament_package()
 
-
-install(TARGETS
-    AriacCameraPlugin
-  ARCHIVE DESTINATION lib
-  LIBRARY DESTINATION lib
-  RUNTIME DESTINATION bin)
+install(
+  TARGETS 
+  AriacCameraPlugin
+  DESTINATION lib/${PROJECT_NAME}
+)
 
 install(DIRECTORY
   worlds
@@ -51,6 +48,10 @@ install(DIRECTORY
   DESTINATION share/${PROJECT_NAME}
 )
 
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.dsv.in")
+ament_environment_hooks("${CMAKE_CURRENT_SOURCE_DIR}/hooks/${PROJECT_NAME}.sh.in")
+
+ament_package()
 
 ############################## For a ROS Package ##############################
 
