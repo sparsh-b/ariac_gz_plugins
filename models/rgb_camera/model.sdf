@@ -26,6 +26,7 @@
         <update_rate>15</update_rate>
         
         <camera>
+          <camera_info_topic>gz_topic_rgb_cam_info</camera_info_topic>
           <horizontal_fov>1.5</horizontal_fov>
           <image>
             <width>640</width>

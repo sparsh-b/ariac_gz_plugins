@@ -17,7 +17,7 @@ namespace ariac_sensors{
       rclcpp::init(0, nullptr);
     }
 
-    ros_node_ = rclcpp::Node::make_shared("rgb_camera_plugin_node");
+    ros_node_ = rclcpp::Node::make_shared("ariac_camera_plugin_node");
 
     executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
     executor_->add_node(ros_node_);
@@ -40,14 +40,21 @@ namespace ariac_sensors{
     gz_node_->Subscribe(
       _sdf->Get<std::string>("gz_topic"), &AriacCameraPlugin::OnImage, this);
 
+    sensor_health_sub_ = ros_node_->create_subscription<ariac_msgs::msg::Sensors>("/ariac/sensor_health", 10, 
+      std::bind(&AriacCameraPlugin::SensorHealthCallback, this, std::placeholders::_1));
+
+  }
+
+  void AriacCameraPlugin::SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg) {
+    publish_sensor_data_ = msg->camera;
   }
 
   void AriacCameraPlugin::OnImage(const gz::msgs::Image & _gz_msg)
   {
-    sensor_msgs::msg::Image ros_msg;
-    ros_gz_bridge::convert_gz_to_ros(_gz_msg, ros_msg);
-    // gzmsg << "callback received" << std::endl;
-    image_pub_->publish(ros_msg);
+    if (publish_sensor_data_) {
+      ros_gz_bridge::convert_gz_to_ros(_gz_msg, ros_msg);
+      image_pub_->publish(ros_msg);
+    }
   }
 
 }

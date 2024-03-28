@@ -15,6 +15,7 @@
 #include <ros_gz_bridge/convert.hpp>
 
 #include <sensor_msgs/msg/image.hpp>
+#include <ariac_msgs/msg/sensors.hpp>
 
 namespace ariac_sensors{
   class AriacCameraPlugin : 
@@ -30,6 +31,8 @@ namespace ariac_sensors{
                       gz::sim::EventManager &_event_mgr) override;
 
       void OnImage(const gz::msgs::Image & _gz_msg);
+
+      void SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg);
     
     private:
       std::shared_ptr<gz::transport::Node> gz_node_;
@@ -37,6 +40,9 @@ namespace ariac_sensors{
       rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_;
       std::thread thread_executor_spin_;
       rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_pub_;
+      bool publish_sensor_data_;
+      sensor_msgs::msg::Image ros_msg;
+      rclcpp::Subscription<ariac_msgs::msg::Sensors>::SharedPtr sensor_health_sub_;
   };
 }
 
