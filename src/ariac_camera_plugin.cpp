@@ -31,6 +31,7 @@ namespace ariac_sensors{
   
     thread_executor_spin_ = std::thread(spin);
 
+    publish_sensor_data_ = false;
     image_pub_ = ros_node_->create_publisher<sensor_msgs::msg::Image>(
       _sdf->Get<std::string>("ros_topic"), 10);
 

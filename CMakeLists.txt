@@ -14,13 +14,12 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   sensor_msgs
   ros_gz_bridge
+  ariac_msgs
 )
 
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
-
-find_package(ariac_msgs REQUIRED PATHS /ariac/ariac_plugins_ws/src/ariac_msgs)
 
 add_library(AriacCameraPlugin SHARED src/ariac_camera_plugin.cpp)
 
@@ -34,7 +33,6 @@ target_link_libraries(AriacCameraPlugin
 
 ament_target_dependencies(AriacCameraPlugin 
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
-  ariac_msgs
 )
 
 ament_export_libraries(AriacCameraPlugin)
