@@ -1,4 +1,4 @@
-<sdf version="1.6">
+<sdf version="1.11">
   <world name="camera_world">
     <physics name="1ms" type="ignored">
       <max_step_size>0.001</max_step_size>
@@ -70,9 +70,15 @@
 
 
     <include>
-      <name>camera_model</name>
+      <name>rgb_camera</name>
       <pose>0 0 1 0 0 0</pose>
       <uri>model://rgb_camera</uri>
+    </include>
+
+    <include>
+      <name>rgbd_camera</name>
+      <pose>1 1 1 0 0 0</pose>
+      <uri>model://rgbd_camera</uri>
     </include>
 
 

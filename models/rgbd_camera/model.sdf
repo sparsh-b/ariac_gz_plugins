@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <sdf version="1.11">
-  <model name="camera">
+  <model name="rgbd_camera">
     <static>true</static>
 
     <link name="link">
@@ -8,7 +8,7 @@
         <pose>-0.03 0 -0.032 0 0 0</pose>
         <geometry>
           <mesh>
-            <uri>model://rgb_camera/meshes/SR4000.stl</uri>
+            <uri>model://rgbd_camera/meshes/SR4000.stl</uri>
           </mesh>
         </geometry>
         <material>
@@ -19,20 +19,26 @@
         </material>
       </visual>
 
-      <sensor type="camera" name="rgb_camera">
-        <topic>gz_topic_rgb_cam_feed</topic>
+      <sensor type="rgbd_camera" name="rgbd_camera">
+        <topic>gz_topic_rgbd_cam_feed</topic>
         <always_on>true</always_on>
         <visualize>true</visualize>
         <update_rate>15</update_rate>
         
         <camera>
-          <camera_info_topic>gz_topic_rgb_cam_info</camera_info_topic>
           <horizontal_fov>1.5</horizontal_fov>
           <image>
             <width>640</width>
             <height>480</height>
             <format>R8G8B8</format>
           </image>
+          <depth_camera>
+            <output>depths</output>
+            <clip>
+              <near>0.2</near>
+              <far>101</far>
+            </clip>
+          </depth_camera>
           <clip>
             <near>0.2</near>
             <far>1.1</far>
@@ -45,13 +51,12 @@
         </camera>
 
         <plugin filename="libAriacCameraPlugin.so" name="ariac_sensors::AriacCameraPlugin">
-          <camera_type>rgb</camera_type>
-          <gz_topic>gz_topic_rgb_cam_feed</gz_topic>
-          <rgb_img_ros_topic>/ariac/sensors/rgb_camera/rgb_image</rgb_img_ros_topic>
-          <cam_info_ros_topic>/ariac/sensors/rgb_camera/camera_info</cam_info_ros_topic>
-          <cam_info_gz_topic>gz_topic_rgb_cam_info</cam_info_gz_topic>
+          <camera_type>rgbd</camera_type>
+          <gz_topic>gz_topic_rgbd_cam_feed</gz_topic>
+          <rgb_img_ros_topic>/ariac/sensors/rgbd_camera/rgb_image</rgb_img_ros_topic>
+          <depth_img_ros_topic>/ariac/sensors/rgbd_camera/depth_image</depth_img_ros_topic>
+          <cam_info_ros_topic>/ariac/sensors/rgbd_camera/camera_info</cam_info_ros_topic>
         </plugin>
-
       </sensor>
     </link>
   </model>
