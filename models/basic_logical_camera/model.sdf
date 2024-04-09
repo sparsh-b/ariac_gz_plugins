@@ -15,8 +15,8 @@
       <sensor name="basic_logical_camera" type="logical_camera">
         <topic>gz_topic_basic_logical_camera</topic>
         <logical_camera>
-            <near>0.2</near>
-            <far>1.1</far>
+            <near>0</near>
+            <far>11</far>
             <horizontal_fov>1.5</horizontal_fov>
             <aspect_ratio>1.2</aspect_ratio>
         </logical_camera>

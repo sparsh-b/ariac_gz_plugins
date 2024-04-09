@@ -140,7 +140,7 @@
   </library_lights>
   <library_images>
     <image id="_dVisionCamera_png">
-      <init_from>camera.png</init_from>
+      <init_from>model://advanced_logical_camera/materials/textures/camera.png</init_from>
     </image>
   </library_images>
   <library_visual_scenes>

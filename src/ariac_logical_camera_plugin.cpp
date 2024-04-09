@@ -26,7 +26,7 @@ namespace ariac_sensors{
       };
     thread_executor_spin_ = std::thread(spin);
 
-    publish_sensor_data_ = false;
+    publish_sensor_data_ = true;
     camera_type_ = _sdf->Get<std::string>("camera_type");    
 
     if (camera_type_ == "basic") {
@@ -70,12 +70,13 @@ namespace ariac_sensors{
   }
 
   void AriacLogicalCameraPlugin::OnNewLogicalFrame(const gz::msgs::LogicalCameraImage &_gz_msg) {
+
     if (!publish_sensor_data_) {
       return;
     }
 
     geometry_msgs::msg::Pose sensor_pose;
-    ros_gz_bridge::convert_gz_to_ros(_gz_msg, sensor_pose);
+    ros_gz_bridge::convert_gz_to_ros(_gz_msg.pose(), sensor_pose);
 
     std::vector<ariac_msgs::msg::PartPose> parts;
     std::vector<ariac_msgs::msg::KitTrayPose> trays;

@@ -74,13 +74,13 @@
 
 
 
-    <include>
+    <!-- <include>
       <name>rgb_camera</name>
       <pose>0 0 1 0 0 0</pose>
       <uri>model://rgb_camera</uri>
     </include>
 
-    <!-- <include>
+    <include>
       <name>rgbd_camera</name>
       <pose>1 1 1 0 0 0</pose>
       <uri>model://rgbd_camera</uri>
@@ -88,11 +88,27 @@
 
     <include>
       <name>basic_logical_camera</name>
-      <pose>0 1 1 0 0 0</pose>
+      <pose>0 1 0.3 0 0 0</pose>
       <uri>model://basic_logical_camera</uri>
     </include>
 
+    <include>
+      <name>advanced_logical_camera</name>
+      <pose>1 0 0.3 0 0 0</pose>
+      <uri>model://advanced_logical_camera</uri>
+    </include>
 
+    <include>
+      <name>kit_tray1</name>
+      <pose>1 1 0.2 0 0 0</pose>
+      <uri>model://kit_tray</uri>
+    </include>
+
+    <include>
+      <name>kit_tray2</name>
+      <pose>2 0 0.2 0 0 0</pose>
+      <uri>model://kit_tray</uri>
+    </include>
 
   </world>
 </sdf>
