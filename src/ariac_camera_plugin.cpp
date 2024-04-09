@@ -51,6 +51,7 @@ namespace ariac_sensors{
       gz_node_->Subscribe(gz_topic_depth_, &AriacCameraPlugin::OnNewDepthFrame, this);
     }
 
+    // Subscribe to sensor health topic
     sensor_health_sub_ = ros_node_->create_subscription<ariac_msgs::msg::Sensors>("/ariac/sensor_health", 
       10, std::bind(&AriacCameraPlugin::SensorHealthCallback, this, std::placeholders::_1));
     
@@ -144,8 +145,6 @@ namespace ariac_sensors{
     // As an attempt to make the plugin lighter.
     gz_node_->Unsubscribe(cam_info_gz_topic_);
   }
-
-
 }
 
 GZ_ADD_PLUGIN(

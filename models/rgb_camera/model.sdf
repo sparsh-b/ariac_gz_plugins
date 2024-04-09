@@ -44,13 +44,13 @@
           </noise>
         </camera>
 
-        <plugin filename="libAriacCameraPlugin.so" name="ariac_sensors::AriacCameraPlugin">
+        <!-- <plugin filename="libAriacCameraPlugin.so" name="ariac_sensors::AriacCameraPlugin">
           <camera_type>rgb</camera_type>
           <gz_topic>gz_topic_rgb_cam_feed</gz_topic>
           <rgb_img_ros_topic>/ariac/sensors/rgb_camera/rgb_image</rgb_img_ros_topic>
           <cam_info_ros_topic>/ariac/sensors/rgb_camera/camera_info</cam_info_ros_topic>
           <cam_info_gz_topic>gz_topic_rgb_cam_info</cam_info_gz_topic>
-        </plugin>
+        </plugin> -->
 
       </sensor>
     </link>
