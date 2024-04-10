@@ -26,7 +26,7 @@ namespace ariac_sensors{
       };
     thread_executor_spin_ = std::thread(spin);
 
-    publish_sensor_data_ = true;
+    publish_sensor_data_ = false;
     camera_type_ = _sdf->Get<std::string>("camera_type");    
 
     if (camera_type_ == "basic") {

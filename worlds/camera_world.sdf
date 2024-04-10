@@ -88,7 +88,7 @@
 
     <!-- <include>
       <name>basic_logical_camera</name>
-      <pose>-1 0 0.3 0 0 0</pose>
+      <pose>2 2 0.3 0 0 0</pose>
       <uri>model://basic_logical_camera</uri>
     </include> -->
 
@@ -98,27 +98,15 @@
       <uri>model://advanced_logical_camera</uri>
     </include>
 
-<!--    <include>
-      <name>kit_tray1</name>
-      <pose>1 1 0.2 0 0 0</pose>
+    <include>
+      <name>kit_tray_03_0</name>
+      <pose>3 2 0.6 0 0 0</pose>
       <uri>model://kit_tray</uri>
-    </include> -->
-
-<!--    <include>
-      <name>kit_tray2</name>
-      <pose>2 0 0.2 0 0 0</pose>
-      <uri>model://kit_tray</uri>
-    </include> -->
-
-    <!-- <include>
-      <name>pump1</name>
-      <pose>0 0 0.2 0 0 0</pose>
-      <uri>model://pump</uri>
-    </include> -->
+    </include> 
 
     <include>
-      <name>pump2</name>
-      <pose>3 2.1 0.2 0.1 0.1 0.1</pose>
+      <name>pump_purple_b02</name>
+      <pose>3 2 0.2 0 0 0</pose>
       <uri>model://pump</uri>
     </include>
 
