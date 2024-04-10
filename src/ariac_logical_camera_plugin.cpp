@@ -102,7 +102,7 @@ namespace ariac_sensors{
 
           part.part.type = part_types_[part_type];
           
-          for(std::string color : colors_){  
+          for(std::string color : colors_){
             if (name.find(color) != std::string::npos) {
               part.part.color = part_colors_[color];
             }
@@ -141,9 +141,9 @@ namespace ariac_sensors{
       advanced_image_msg_->part_poses = parts;
       advanced_image_msg_->tray_poses = trays;
 
-      basic_image_msg_->header.frame_id = _gz_msg.header().data(0).value(0);
-      basic_image_msg_->header.stamp.sec = _gz_msg.header().stamp().sec();
-      basic_image_msg_->header.stamp.nanosec = _gz_msg.header().stamp().nsec();
+      advanced_image_msg_->header.frame_id = _gz_msg.header().data(0).value(0);
+      advanced_image_msg_->header.stamp.sec = _gz_msg.header().stamp().sec();
+      advanced_image_msg_->header.stamp.nanosec = _gz_msg.header().stamp().nsec();
 
       advanced_image_pub_->publish(*advanced_image_msg_);
     }

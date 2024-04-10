@@ -32,6 +32,7 @@
           <camera_name>basic_logical_camera</camera_name>
           <frame_name>basic_logical_camera_frame</frame_name>
         </plugin>
+        
       </sensor>
     </link>
   </model>
