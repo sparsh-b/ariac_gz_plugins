@@ -3,6 +3,41 @@
 #include "ariac_gz_plugins/ariac_logical_camera_plugin.hpp"
 
 namespace ariac_sensors{
+
+  class AriacLogicalCameraPluginPrivate {
+    public:
+      /// gz node to subscribe to gztopic_ & callback the `OnNewLogicalFrame` method
+      std::shared_ptr<gz::transport::Node> gz_node_;      
+
+      /// Type of the logical camera (Basic or Advanced)
+      std::string camera_type_;
+      std::string frame_name_;
+
+      /// Node for ros communication
+      rclcpp::Node::SharedPtr ros_node_;
+      rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_;
+      std::thread thread_executor_spin_;
+      bool publish_sensor_data_;
+
+      /// List of models that the logical camera will publish
+      std::vector<std::string> parts_to_publish_;
+      std::vector<std::string> colors_;
+      std::map<std::string, int> part_types_;
+      std::map<std::string, int> part_colors_;
+
+      /// Ariac messages & ROS Publishsers for Basic & Advanced logical camera images
+      rclcpp::Publisher<ariac_msgs::msg::BasicLogicalCameraImage>::SharedPtr basic_image_pub_;
+      std::shared_ptr<ariac_msgs::msg::BasicLogicalCameraImage> basic_image_msg_;
+      rclcpp::Publisher<ariac_msgs::msg::AdvancedLogicalCameraImage>::SharedPtr advanced_image_pub_;
+      std::shared_ptr<ariac_msgs::msg::AdvancedLogicalCameraImage> advanced_image_msg_;
+
+      /// Sensor Health Subscription
+      rclcpp::Subscription<ariac_msgs::msg::Sensors>::SharedPtr sensor_health_sub_;
+
+      /// Publish latest logical camera data to ROS
+      void OnNewLogicalFrame(const gz::msgs::LogicalCameraImage & _gz_msg);
+  };
+
   AriacLogicalCameraPlugin::AriacLogicalCameraPlugin() {}
   AriacLogicalCameraPlugin::~AriacLogicalCameraPlugin() {}
 
@@ -15,42 +50,43 @@ namespace ariac_sensors{
     if (!rclcpp::ok()) {
       rclcpp::init(0, nullptr);
     }
-    ros_node_ = rclcpp::Node::make_shared("ariac_logical_camera_plugin_node");
-    executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
-    executor_->add_node(ros_node_);
+    impl_->ros_node_ = rclcpp::Node::make_shared("ariac_logical_camera_plugin_node");
+    impl_->executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+    impl_->executor_->add_node(impl_->ros_node_);
     auto spin = [this]()
       {
         while (rclcpp::ok()) {
-          executor_->spin_once();
+          impl_->executor_->spin_once();
         }
       };
-    thread_executor_spin_ = std::thread(spin);
+    impl_->thread_executor_spin_ = std::thread(spin);
 
-    publish_sensor_data_ = false;
-    camera_type_ = _sdf->Get<std::string>("camera_type");    
+    impl_->publish_sensor_data_ = false;
+    impl_->camera_type_ = _sdf->Get<std::string>("camera_type");
+    impl_->frame_name_ = _sdf->Get<std::string>("frame_name");
 
-    if (camera_type_ == "basic") {
-      basic_image_pub_ = ros_node_->create_publisher<ariac_msgs::msg::BasicLogicalCameraImage>(
+    if (impl_->camera_type_ == "basic") {
+      impl_->basic_image_pub_ = impl_->ros_node_->create_publisher<ariac_msgs::msg::BasicLogicalCameraImage>(
       _sdf->Get<std::string>("rostopic"), rclcpp::SensorDataQoS());
-      basic_image_msg_ = std::make_shared<ariac_msgs::msg::BasicLogicalCameraImage>();
-    } else if (camera_type_ == "advanced") {
-      advanced_image_pub_ = ros_node_->create_publisher<ariac_msgs::msg::AdvancedLogicalCameraImage>(
+      impl_->basic_image_msg_ = std::make_shared<ariac_msgs::msg::BasicLogicalCameraImage>();
+    } else if (impl_->camera_type_ == "advanced") {
+      impl_->advanced_image_pub_ = impl_->ros_node_->create_publisher<ariac_msgs::msg::AdvancedLogicalCameraImage>(
       _sdf->Get<std::string>("rostopic"), rclcpp::SensorDataQoS());
-      advanced_image_msg_ = std::make_shared<ariac_msgs::msg::AdvancedLogicalCameraImage>();
+      impl_->advanced_image_msg_ = std::make_shared<ariac_msgs::msg::AdvancedLogicalCameraImage>();
     }
 
     // Set list of models to publish
-    parts_to_publish_ = {"pump", "battery", "regulator", "sensor"};
-    colors_ = {"red", "green", "blue", "orange", "purple"};
+    impl_->parts_to_publish_ = {"pump", "battery", "regulator", "sensor"};
+    impl_->colors_ = {"red", "green", "blue", "orange", "purple"};
 
-    part_types_ = {
+    impl_->part_types_ = {
       {"battery", ariac_msgs::msg::Part::BATTERY},
       {"pump", ariac_msgs::msg::Part::PUMP},
       {"regulator", ariac_msgs::msg::Part::REGULATOR},
       {"sensor", ariac_msgs::msg::Part::SENSOR},
     };
 
-    part_colors_ = {
+    impl_->part_colors_ = {
       {"red", ariac_msgs::msg::Part::RED},
       {"green", ariac_msgs::msg::Part::GREEN},
       {"blue", ariac_msgs::msg::Part::BLUE},
@@ -59,17 +95,18 @@ namespace ariac_sensors{
     };
 
     // Subscribe to sensor health topic
-    sensor_health_sub_ = ros_node_->create_subscription<ariac_msgs::msg::Sensors>("/ariac/sensor_health", 
+    impl_->sensor_health_sub_ = impl_->ros_node_->create_subscription<ariac_msgs::msg::Sensors>("/ariac/sensor_health", 
       10, std::bind(&AriacLogicalCameraPlugin::SensorHealthCallback, this, std::placeholders::_1));
 
     // Set up gz subscriber
-    gz_node_ = std::make_shared<gz::transport::Node>();
-    gztopic_ = _sdf->Get<std::string>("gztopic");
-    gz_node_->Subscribe(gztopic_, &AriacLogicalCameraPlugin::OnNewLogicalFrame, this);
+    impl_->gz_node_ = std::make_shared<gz::transport::Node>();
+    std::string gztopic_ = _sdf->Get<std::string>("gztopic");
 
+    // gz_node_->Subscribe(gztopic_, &AriacLogicalCameraPlugin::OnNewLogicalFrame, this);
+    impl_->gz_node_->Subscribe(gztopic_, &AriacLogicalCameraPluginPrivate::OnNewLogicalFrame, impl_.get());
   }
 
-  void AriacLogicalCameraPlugin::OnNewLogicalFrame(const gz::msgs::LogicalCameraImage &_gz_msg) {
+  void AriacLogicalCameraPluginPrivate::OnNewLogicalFrame(const gz::msgs::LogicalCameraImage &_gz_msg) {
 
     if (!publish_sensor_data_) {
       return;
@@ -129,7 +166,7 @@ namespace ariac_sensors{
         basic_image_msg_->tray_poses.push_back(tray.pose);
       }
 
-      basic_image_msg_->header.frame_id = _gz_msg.header().data(0).value(0);
+      basic_image_msg_->header.frame_id = frame_name_;
       basic_image_msg_->header.stamp.sec = _gz_msg.header().stamp().sec();
       basic_image_msg_->header.stamp.nanosec = _gz_msg.header().stamp().nsec();
 
@@ -141,7 +178,7 @@ namespace ariac_sensors{
       advanced_image_msg_->part_poses = parts;
       advanced_image_msg_->tray_poses = trays;
 
-      advanced_image_msg_->header.frame_id = _gz_msg.header().data(0).value(0);
+      advanced_image_msg_->header.frame_id = frame_name_;
       advanced_image_msg_->header.stamp.sec = _gz_msg.header().stamp().sec();
       advanced_image_msg_->header.stamp.nanosec = _gz_msg.header().stamp().nsec();
 
@@ -150,7 +187,7 @@ namespace ariac_sensors{
   }
 
   void AriacLogicalCameraPlugin::SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg) {
-    publish_sensor_data_ = msg->logical_camera;
+    impl_->publish_sensor_data_ = msg->logical_camera;
   }
 
 }
