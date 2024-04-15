@@ -1,21 +1,9 @@
 #ifndef ARIAC_LOGICAL_CAMERA_PLUGIN_HPP
 #define ARIAC_LOGICAL_CAMERA_PLUGIN_HPP
 
-#include <rclcpp/rclcpp.hpp>
-
 #include <gz/sim/System.hh>
 #include <gz/sim/EntityComponentManager.hh>
 #include <gz/sim/EventManager.hh>
-#include <gz/sim/Sensor.hh>
-
-#include <gz/transport/Node.hh>
-#include <gz/msgs/logical_camera_image.pb.h>
-#include <ros_gz_bridge/convert.hpp>
-
-#include <ariac_msgs/msg/sensors.hpp>
-#include <ariac_msgs/msg/basic_logical_camera_image.hpp>
-#include <ariac_msgs/msg/advanced_logical_camera_image.hpp>
-
 
 namespace ariac_sensors{
   // Forward declaration for a class to hold private members of the plugin class.
@@ -34,8 +22,6 @@ namespace ariac_sensors{
                       const std::shared_ptr<const sdf::Element> &_sdf,
                       gz::sim::EntityComponentManager &_ecm,
                       gz::sim::EventManager &_event_mgr) override;
-
-      void SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg);
   
     private:
       std::unique_ptr<AriacLogicalCameraPluginPrivate> impl_;

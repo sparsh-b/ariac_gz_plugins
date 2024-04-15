@@ -1,5 +1,17 @@
 #include <gz/plugin/Register.hh>
 
+#include <rclcpp/rclcpp.hpp>
+
+#include <gz/sim/Sensor.hh>
+
+#include <gz/transport/Node.hh>
+#include <gz/msgs/logical_camera_image.pb.h>
+#include <ros_gz_bridge/convert.hpp>
+
+#include <ariac_msgs/msg/sensors.hpp>
+#include <ariac_msgs/msg/basic_logical_camera_image.hpp>
+#include <ariac_msgs/msg/advanced_logical_camera_image.hpp>
+
 #include "ariac_gz_plugins/ariac_logical_camera_plugin.hpp"
 
 namespace ariac_sensors{
@@ -36,9 +48,11 @@ namespace ariac_sensors{
 
       /// Publish latest logical camera data to ROS
       void OnNewLogicalFrame(const gz::msgs::LogicalCameraImage & _gz_msg);
+
+      void SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg);
   };
 
-  AriacLogicalCameraPlugin::AriacLogicalCameraPlugin() {}
+  AriacLogicalCameraPlugin::AriacLogicalCameraPlugin() : impl_(std::make_unique<AriacLogicalCameraPluginPrivate>()) {}
   AriacLogicalCameraPlugin::~AriacLogicalCameraPlugin() {}
 
   void AriacLogicalCameraPlugin::Configure(const gz::sim::Entity &_entity,
@@ -50,6 +64,7 @@ namespace ariac_sensors{
     if (!rclcpp::ok()) {
       rclcpp::init(0, nullptr);
     }
+
     impl_->ros_node_ = rclcpp::Node::make_shared("ariac_logical_camera_plugin_node");
     impl_->executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
     impl_->executor_->add_node(impl_->ros_node_);
@@ -96,13 +111,12 @@ namespace ariac_sensors{
 
     // Subscribe to sensor health topic
     impl_->sensor_health_sub_ = impl_->ros_node_->create_subscription<ariac_msgs::msg::Sensors>("/ariac/sensor_health", 
-      10, std::bind(&AriacLogicalCameraPlugin::SensorHealthCallback, this, std::placeholders::_1));
+      10, std::bind(&AriacLogicalCameraPluginPrivate::SensorHealthCallback, impl_.get(), std::placeholders::_1));
 
     // Set up gz subscriber
     impl_->gz_node_ = std::make_shared<gz::transport::Node>();
     std::string gztopic_ = _sdf->Get<std::string>("gztopic");
 
-    // gz_node_->Subscribe(gztopic_, &AriacLogicalCameraPlugin::OnNewLogicalFrame, this);
     impl_->gz_node_->Subscribe(gztopic_, &AriacLogicalCameraPluginPrivate::OnNewLogicalFrame, impl_.get());
   }
 
@@ -186,8 +200,8 @@ namespace ariac_sensors{
     }
   }
 
-  void AriacLogicalCameraPlugin::SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg) {
-    impl_->publish_sensor_data_ = msg->logical_camera;
+  void AriacLogicalCameraPluginPrivate::SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg) {
+    publish_sensor_data_ = msg->logical_camera;
   }
 
 }
