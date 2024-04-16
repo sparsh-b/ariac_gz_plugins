@@ -1,6 +1,4 @@
 #include <rclcpp/rclcpp.hpp>
-// #include <gz/sim/components/Component.hh>
-// #include <gz/sim/components/Name.hh>
 #include <gz/sim/Sensor.hh>
 
 #include <gz/transport/Node.hh>
