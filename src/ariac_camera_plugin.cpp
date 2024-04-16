@@ -1,11 +1,50 @@
-#include <gz/plugin/Register.hh>
-#include <typeinfo>
+#include <rclcpp/rclcpp.hpp>
+// #include <gz/sim/components/Component.hh>
+// #include <gz/sim/components/Name.hh>
+#include <gz/sim/Sensor.hh>
 
-#include <ariac_gz_plugins/ariac_camera_plugin.hpp>
+#include <gz/transport/Node.hh>
+
+#include <ros_gz_bridge/convert.hpp>
+
+#include <sensor_msgs/msg/image.hpp>
+#include <ariac_msgs/msg/sensors.hpp>
+
+#include <gz/plugin/Register.hh>
+
+#include "ariac_gz_plugins/ariac_camera_plugin.hpp"
 
 namespace ariac_sensors{
 
-  AriacCameraPlugin::AriacCameraPlugin() {}
+  class AriacCameraPluginPrivate {
+    public:
+      void OnNewImageFrame(const gz::msgs::Image & _gz_msg);
+      void OnNewDepthFrame(const gz::msgs::Image & _gz_msg);
+
+      void SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg);
+    
+      std::string camera_type_;
+      std::shared_ptr<gz::transport::Node> gz_node_;
+      rclcpp::Node::SharedPtr ros_node_;
+      rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_;
+      std::thread thread_executor_spin_;
+      rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr image_pub_;
+      rclcpp::Publisher<sensor_msgs::msg::Image>::SharedPtr depth_image_pub_;
+      rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr camera_info_pub_;
+      sensor_msgs::msg::CameraInfo camera_info_msg_;
+
+      std::string gz_topic_;
+      std::string gz_topic_depth_;
+      std::string cam_info_gz_topic_;
+
+      bool publish_sensor_data_;
+      sensor_msgs::msg::Image ros_msg;
+      rclcpp::Subscription<ariac_msgs::msg::Sensors>::SharedPtr sensor_health_sub_;
+
+      void FillCameraInfoMsg(const gz::msgs::CameraInfo &_info_msg);
+  };
+
+  AriacCameraPlugin::AriacCameraPlugin() : impl_(std::make_unique<AriacCameraPluginPrivate>()) {}
 
   void AriacCameraPlugin::Configure (const gz::sim::Entity &_entity,
                       const std::shared_ptr<const sdf::Element> &_sdf,
@@ -16,56 +55,56 @@ namespace ariac_sensors{
     if (!rclcpp::ok()) {
       rclcpp::init(0, nullptr);
     }
-    ros_node_ = rclcpp::Node::make_shared("ariac_camera_plugin_node");
-    executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
-    executor_->add_node(ros_node_);
+    impl_->ros_node_ = rclcpp::Node::make_shared("ariac_camera_plugin_node");
+    impl_->executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
+    impl_->executor_->add_node(impl_->ros_node_);
     auto spin = [this]()
       {
         while (rclcpp::ok()) {
-          executor_->spin_once();
+          impl_->executor_->spin_once();
         }
       };
-    thread_executor_spin_ = std::thread(spin);
+    impl_->thread_executor_spin_ = std::thread(spin);
 
-    publish_sensor_data_ = false;
-    image_pub_ = ros_node_->create_publisher<sensor_msgs::msg::Image>(
+    impl_->publish_sensor_data_ = false;
+    impl_->image_pub_ = impl_->ros_node_->create_publisher<sensor_msgs::msg::Image>(
       _sdf->Get<std::string>("rgb_img_ros_topic"), 10);
-    depth_image_pub_ = ros_node_->create_publisher<sensor_msgs::msg::Image>(
-      _sdf->Get<std::string>("depth_img_ros_topic"), 10);
 
-    camera_type_ = _sdf->Get<std::string>("camera_type");
-    if (camera_type_ == "rgb") {
-      gz_topic_ = _sdf->Get<std::string>("gz_topic");
-      cam_info_gz_topic_ = _sdf->Get<std::string>("cam_info_gz_topic");
-    } else if (camera_type_ == "rgbd") {
-      gz_topic_ = _sdf->Get<std::string>("gz_topic") + "/image";
-      gz_topic_depth_ = _sdf->Get<std::string>("gz_topic") + "/depth_image]";
-      cam_info_gz_topic_ = _sdf->Get<std::string>("gz_topic") + "/camera_info";
+    impl_->camera_type_ = _sdf->Get<std::string>("camera_type");
+    if (impl_->camera_type_ == "rgb") {
+      impl_->gz_topic_ = _sdf->Get<std::string>("gz_topic");
+      impl_->cam_info_gz_topic_ = _sdf->Get<std::string>("cam_info_gz_topic");
+    } else if (impl_->camera_type_ == "rgbd") {
+      impl_->gz_topic_ = _sdf->Get<std::string>("gz_topic") + "/image";
+      impl_->gz_topic_depth_ = _sdf->Get<std::string>("gz_topic") + "/depth_image]";
+      impl_->cam_info_gz_topic_ = _sdf->Get<std::string>("gz_topic") + "/camera_info";
+      impl_->depth_image_pub_ = impl_->ros_node_->create_publisher<sensor_msgs::msg::Image>(
+        _sdf->Get<std::string>("depth_img_ros_topic"), 10);
     }
 
     // Set up gz subscriber
-    gz_node_ = std::make_shared<gz::transport::Node>();
-    gz_node_->Subscribe(gz_topic_, &AriacCameraPlugin::OnNewImageFrame, this);
-    gz_node_->Subscribe(cam_info_gz_topic_, &AriacCameraPlugin::FillCameraInfoMsg, this);
-    if (camera_type_ == "rgbd") {
-      gz_node_->Subscribe(gz_topic_depth_, &AriacCameraPlugin::OnNewDepthFrame, this);
+    impl_->gz_node_ = std::make_shared<gz::transport::Node>();
+    impl_->gz_node_->Subscribe(impl_->gz_topic_, &AriacCameraPluginPrivate::OnNewImageFrame, impl_.get());
+    impl_->gz_node_->Subscribe(impl_->cam_info_gz_topic_, &AriacCameraPluginPrivate::FillCameraInfoMsg, impl_.get());
+    if (impl_->camera_type_ == "rgbd") {
+      impl_->gz_node_->Subscribe(impl_->gz_topic_depth_, &AriacCameraPluginPrivate::OnNewDepthFrame, impl_.get());
     }
 
     // Subscribe to sensor health topic
-    sensor_health_sub_ = ros_node_->create_subscription<ariac_msgs::msg::Sensors>("/ariac/sensor_health", 
-      10, std::bind(&AriacCameraPlugin::SensorHealthCallback, this, std::placeholders::_1));
+    impl_->sensor_health_sub_ = impl_->ros_node_->create_subscription<ariac_msgs::msg::Sensors>("/ariac/sensor_health", 
+      10, std::bind(&AriacCameraPluginPrivate::SensorHealthCallback, impl_.get(), std::placeholders::_1));
     
-    camera_info_pub_ = ros_node_->create_publisher<sensor_msgs::msg::CameraInfo>(
+    impl_->camera_info_pub_ = impl_->ros_node_->create_publisher<sensor_msgs::msg::CameraInfo>(
       _sdf->Get<std::string>("cam_info_ros_topic"), 10);
   }
 
 
-  void AriacCameraPlugin::SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg) {
+  void AriacCameraPluginPrivate::SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg) {
     publish_sensor_data_ = msg->camera;
   }
 
 
-  void AriacCameraPlugin::OnNewImageFrame(const gz::msgs::Image & _gz_msg)
+  void AriacCameraPluginPrivate::OnNewImageFrame(const gz::msgs::Image & _gz_msg)
   {
     if (publish_sensor_data_) {
       ros_gz_bridge::convert_gz_to_ros(_gz_msg, ros_msg);
@@ -77,14 +116,14 @@ namespace ariac_sensors{
     }
   }
 
-  void AriacCameraPlugin::OnNewDepthFrame(const gz::msgs::Image & _gz_msg) {
+  void AriacCameraPluginPrivate::OnNewDepthFrame(const gz::msgs::Image & _gz_msg) {
     if (publish_sensor_data_) {
       ros_gz_bridge::convert_gz_to_ros(_gz_msg, ros_msg);
       depth_image_pub_->publish(ros_msg);
     }
   }
 
-  void AriacCameraPlugin::FillCameraInfoMsg(const gz::msgs::CameraInfo &_info_msg) {
+  void AriacCameraPluginPrivate::FillCameraInfoMsg(const gz::msgs::CameraInfo &_info_msg) {
     // Assuming a particular camera's CameraInfo (except timestamp) doesn't change once it is spawned, 
     // fill the ROS msg only once at startup (but publish it along with every new image frame).
     
