@@ -46,6 +46,7 @@
         <visualize>true</visualize>
 
         <plugin name="ariac_sensors::AriacRayPlugin" filename="libAriacRayPlugin.so">
+          <gz_topic>ariac/sensors/laser_profiler/scan</gz_topic>
           <sensor_type>laser_profiler</sensor_type>
           <sensor_name>laser_profiler</sensor_name>
           <frame_name>laser_profiler_frame</frame_name>

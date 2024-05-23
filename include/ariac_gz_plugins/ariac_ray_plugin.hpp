@@ -21,7 +21,11 @@
 
 
 namespace ariac_sensors{
-  /// Plugin to
+  
+  // Forward Declaration of a class to hold the private members of the AriacRayPlugin class.
+  class AriacRayPluginPrivate;
+
+  /// Plugin for the Ray sensors
   class AriacRayPlugin : 
     public gz::sim::System,
     public gz::sim::ISystemConfigure
@@ -36,42 +40,7 @@ namespace ariac_sensors{
                       gz::sim::EventManager &_event_mgr) override;
 
     private:
-      /// gz node to subscribe to gztopic_ & callback the `OnNewLogicalFrame` method
-      std::shared_ptr<gz::transport::Node> gz_node_;      
-
-      /// Type of the sensor
-      std::string sensor_type_;
-      std::string sensor_name_;
-      std::string frame_name_;
-
-
-      /// Node for ros communication
-      rclcpp::Node::SharedPtr ros_node_;
-      rclcpp::executors::MultiThreadedExecutor::SharedPtr executor_;
-      std::thread thread_executor_spin_;
-      ariac_msgs::msg::Sensors sensor_health_;
-
-      ariac_msgs::msg::BreakBeamStatus status_msg_;
-      rclcpp::Publisher<ariac_msgs::msg::BreakBeamStatus>::SharedPtr status_pub_;
-      rclcpp::Publisher<ariac_msgs::msg::BreakBeamStatus>::SharedPtr change_pub_;
-
-      rclcpp::Publisher<sensor_msgs::msg::Range>::SharedPtr range_pub_;
-      rclcpp::Publisher<sensor_msgs::msg::LaserScan>::SharedPtr laser_scan_pub_;
-      rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr point_cloud_pub_;
-
-
-      /// Sensor Health Subscription
-      rclcpp::Subscription<ariac_msgs::msg::Sensors>::SharedPtr sensor_health_sub_;
-      void SensorHealthCallback(const ariac_msgs::msg::Sensors::SharedPtr msg);
-
-      void ReadLaserScan(const gz::msgs::LaserScan &_gz_msg);
-      void ReadPointCloudPacked(const gz::msgs::PointCloudPacked &_gz_msg);
-
-      void PublishRange(const gz::msgs::LaserScan &_gz_msg);
-      void PublishLaserScan(const gz::msgs::LaserScan &_gz_msg);
-      void PublishPointCloud(const gz::msgs::PointCloudPacked &_gz_msg);
-      void PublishBreakBeamStatus(const gz::msgs::LaserScan &_gz_msg);
-
+      std::unique_ptr<AriacRayPluginPrivate> impl_;
   };
 }
 

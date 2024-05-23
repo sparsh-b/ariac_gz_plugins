@@ -30,7 +30,7 @@
             </horizontal>
           </scan>
           <range>
-            <min>0.0</min>
+            <min>0.0001</min>
             <max>0.35</max>
             <resolution>0.001</resolution>
           </range>
@@ -46,6 +46,7 @@
         <visualize>true</visualize>
 
         <plugin name="ariac_sensors::AriacRayPlugin" filename="libAriacRayPlugin.so">
+          <gz_topic>ariac/sensors/break_beam_sensor/scan</gz_topic>
           <sensor_type>break_beam</sensor_type>
           <sensor_name>break_beam_sensor</sensor_name>
           <frame_name>break_beam_sensor_frame</frame_name>

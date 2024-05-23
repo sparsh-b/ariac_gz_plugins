@@ -1,9 +1,6 @@
 cmake_minimum_required(VERSION 3.8)
 project(ariac_gz_plugins)
 
-# # find dependencies
-# find_package(gz-plugin2 REQUIRED COMPONENTS register)
-# set(GZ_PLUGIN_VER ${gz-plugin2_VERSION_MAJOR})
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   ament_cmake
@@ -23,11 +20,6 @@ endforeach()
 
 add_library(AriacCameraPlugin SHARED src/ariac_camera_plugin.cpp)
 target_include_directories(AriacCameraPlugin PUBLIC include)
-# target_link_libraries(AriacCameraPlugin
-#   gz-plugin2::gz-plugin2
-#   gz-sim8::gz-sim8
-#   gz-sensors8::gz-sensors8
-# )
 ament_target_dependencies(AriacCameraPlugin 
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
@@ -36,13 +28,9 @@ install(TARGETS AriacCameraPlugin
         DESTINATION lib/${PROJECT_NAME}
 )
 
+
 add_library(AriacLogicalCameraPlugin SHARED src/ariac_logical_camera_plugin.cpp)
 target_include_directories(AriacLogicalCameraPlugin PUBLIC include)
-# target_link_libraries(AriacLogicalCameraPlugin
-#   gz-plugin2::gz-plugin2
-#   gz-sim8::gz-sim8
-#   gz-sensors8::gz-sensors8
-# )
 ament_target_dependencies(AriacLogicalCameraPlugin
   ${THIS_PACKAGE_INCLUDE_DEPENDS}
 )
@@ -50,6 +38,18 @@ ament_export_libraries(AriacLogicalCameraPlugin)
 install(TARGETS AriacLogicalCameraPlugin
         DESTINATION lib/${PROJECT_NAME}
 )
+
+
+add_library(AriacRayPlugin SHARED src/ariac_ray_plugin.cpp)
+target_include_directories(AriacRayPlugin PUBLIC include)
+ament_target_dependencies(AriacRayPlugin
+  ${THIS_PACKAGE_INCLUDE_DEPENDS}
+)
+ament_export_libraries(AriacRayPlugin)
+install(TARGETS AriacRayPlugin
+        DESTINATION lib/${PROJECT_NAME}
+)
+
 
 install(DIRECTORY worlds models
         DESTINATION share/${PROJECT_NAME}
