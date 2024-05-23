@@ -70,17 +70,17 @@
 
 
 
-    <include>
+    <!-- <include>
       <name>rgb_camera</name>
       <pose>0 0 1 0 0 0</pose>
       <uri>model://rgb_camera</uri>
-    </include>
+    </include> 
 
     <include>
       <name>rgbd_camera</name>
       <pose>1 1 1 0 0 0</pose>
       <uri>model://rgbd_camera</uri>
-    </include>
+    </include> -->
 
     <!-- <include>
       <name>basic_logical_camera</name>
@@ -106,11 +106,11 @@
       <uri>model://pump</uri>
     </include> -->
 
-    <!-- <include>
-      <name>lidar</name>
+    <include>
+      <name>prox</name>
       <pose>3 2 0.2 0 0 0</pose>
-      <uri>model://lidar</uri>
-    </include> -->
+      <uri>model://proximity</uri>
+    </include>
 
 
   </world>
