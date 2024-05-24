@@ -144,7 +144,7 @@ namespace ariac_sensors {
   }
 
   void AriacRayPluginPrivate::PublishBreakBeamStatus(const gz::msgs::LaserScan &_gz_msg) {
-    if (1){//this->sensor_health_.break_beam) {
+    if (this->sensor_health_.break_beam) {
       sensor_msgs::msg::LaserScan ls;
       ros_gz_bridge::convert_gz_to_ros(_gz_msg, ls);
 
