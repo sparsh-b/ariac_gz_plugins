@@ -41,7 +41,7 @@
           <noise>
             <type>gaussian</type>
             <mean>0.0</mean>
-            <stddev>0.0</stddev>
+            <stddev>0.001</stddev>
           </noise>
         </lidar>
         <!-- Using gazebo's update rate instead of plugin's -->
