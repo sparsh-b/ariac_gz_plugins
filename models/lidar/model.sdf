@@ -8,9 +8,12 @@
       <visual name="visual">
         <pose>-0.03 0 -0.032 0 0 0</pose>
           <geometry>
-          <mesh>
+          <box>
+            <size>0.1 0.1 0.1 </size>
+          </box>
+          <!-- <mesh>
               <uri>model://lidar/meshes/SR4000.stl</uri>
-          </mesh>
+          </mesh> -->
           </geometry>
           <material>
               <ambient>0.15 0.15 0.15 1</ambient>
