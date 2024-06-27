@@ -21,11 +21,11 @@
       name="gz::sim::systems::Sensors">
       <render_engine>ogre2</render_engine>
     </plugin>
-    <!-- <plugin
+    <plugin
       filename="gz-sim-logical-camera-system"
       name="gz::sim::systems::LogicalCamera">
       <render_engine>ogre2</render_engine>
-    </plugin> -->
+    </plugin>
 
     <light type="directional" name="sun">
       <cast_shadows>true</cast_shadows>
@@ -88,29 +88,29 @@
       <uri>model://basic_logical_camera</uri>
     </include> -->
 
-    <!-- <include>
+    <include>
       <name>advanced_logical_camera</name>
-      <pose>2 2 0.3 0 0 0</pose>
+      <pose>2 2 0.1 0 0 0</pose>
       <uri>model://advanced_logical_camera</uri>
     </include>
 
-    <include>
+    <!-- <include>
       <name>kit_tray_03_0</name>
       <pose>3 2 0.6 0 0 0</pose>
       <uri>model://kit_tray</uri>
-    </include> 
-
-    <include>
-      <name>pump_purple_b02</name>
-      <pose>3 2 0.2 0 0 0</pose>
-      <uri>model://pump</uri>
     </include> -->
 
     <include>
+      <name>pump_purple_b02</name>
+      <pose>3 2 0.1 0 0 0</pose>
+      <uri>model://pump</uri>
+    </include>
+
+    <!-- <include>
       <name>prox</name>
       <pose>3 2 0.2 0 0 0</pose>
       <uri>model://proximity</uri>
-    </include>
+    </include> -->
 
 
   </world>
