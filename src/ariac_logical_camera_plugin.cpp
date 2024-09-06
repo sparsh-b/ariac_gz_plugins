@@ -8,6 +8,8 @@
 #include <gz/msgs/logical_camera_image.pb.h>
 #include <ros_gz_bridge/convert.hpp>
 
+#include <ament_index_cpp/get_package_share_directory.hpp>
+
 #include <ariac_msgs/msg/sensors.hpp>
 #include <ariac_msgs/msg/basic_logical_camera_image.hpp>
 #include <ariac_msgs/msg/advanced_logical_camera_image.hpp>
@@ -61,11 +63,19 @@ namespace ariac_sensors{
                       gz::sim::EventManager &_event_mgr) {
 
     // Set up ros publisher
-    if (!rclcpp::ok()) {
-      rclcpp::init(0, nullptr);
+    std::vector<std::string> arguments = {"--ros-args"};
+    arguments.push_back(RCL_PARAM_FILE_FLAG);
+    arguments.push_back(ament_index_cpp::get_package_share_directory("aprs_description")+"/config/robot_controllers.yaml");
+    std::vector<const char *> argv;
+    for (const auto & arg : arguments) {
+      argv.push_back(reinterpret_cast<const char *>(arg.data()));
+    }
+    
+    if (!rclcpp::ok()){
+      rclcpp::init(static_cast<int>(argv.size()), argv.data());
     }
 
-    impl_->ros_node_ = rclcpp::Node::make_shared("ariac_logical_camera_plugin_node");
+    impl_->ros_node_ = rclcpp::Node::make_shared(_sdf->Get<std::string>("camera_name")+"_node");
     impl_->executor_ = std::make_shared<rclcpp::executors::MultiThreadedExecutor>();
     impl_->executor_->add_node(impl_->ros_node_);
     auto spin = [this]()
@@ -76,7 +86,7 @@ namespace ariac_sensors{
       };
     impl_->thread_executor_spin_ = std::thread(spin);
 
-    impl_->publish_sensor_data_ = false;
+    impl_->publish_sensor_data_ = true;
     impl_->camera_type_ = _sdf->Get<std::string>("camera_type");
     impl_->frame_name_ = _sdf->Get<std::string>("frame_name");
 
@@ -117,11 +127,12 @@ namespace ariac_sensors{
     impl_->gz_node_ = std::make_shared<gz::transport::Node>();
     std::string gztopic_ = _sdf->Get<std::string>("gztopic");
 
+    RCLCPP_INFO_STREAM(impl_->ros_node_->get_logger(), "GZ_TOPIC_NAME: " << gztopic_);
+
     impl_->gz_node_->Subscribe(gztopic_, &AriacLogicalCameraPluginPrivate::OnNewLogicalFrame, impl_.get());
   }
 
-  void AriacLogicalCameraPluginPrivate::OnNewLogicalFrame(const gz::msgs::LogicalCameraImage &_gz_msg) {
-
+  void AriacLogicalCameraPluginPrivate::OnNewLogicalFrame(const gz::msgs::LogicalCameraImage &_gz_msg) {    
     if (!publish_sensor_data_) {
       return;
     }
